@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Random Bible Verse</title>
+  </head>
+  <body>
+
+    <style>
+      :root {
+  --amber: #ff9f2e;
+  --amber-soft: #ffc46b;
+  --teal: #7fd6d0;
+  --teal-deep: #1b6b73;
+  --text: #f3efe6;
+  --bar: 9vh;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+  padding: 15vh 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:
+    radial-gradient(ellipse 60% 50% at 85% 10%, rgba(255, 159, 46, 0.22), transparent 60%),
+    radial-gradient(ellipse 70% 60% at 10% 90%, rgba(27, 107, 115, 0.45), transparent 65%),
+    linear-gradient(180deg, #06222a 0%, #020b0e 100%);
+  background-attachment: fixed;
+  font-family: "Lora", Georgia, serif;
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* Letterbox bars na bumubukas pag-load */
+.letterbox {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: var(--bar);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+  font-family: "Oswald", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: rgba(255, 196, 107, 0.6);
+  z-index: 10;
+  animation: barsOpen 1.6s cubic-bezier(0.77, 0, 0.18, 1) both;
+}
+
+.letterbox.top {
+  top: 0;
+  border-bottom: 1px solid rgba(255, 159, 46, 0.3);
+}
+
+.letterbox.bottom {
+  bottom: 0;
+  border-top: 1px solid rgba(255, 159, 46, 0.3);
+}
+
+/* Anamorphic lens flare */
+.flare {
+  position: fixed;
+  top: 36%;
+  left: -10%;
+  width: 120%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 159, 46, 0) 15%,
+    rgba(255, 196, 107, 0.9) 50%,
+    rgba(255, 159, 46, 0) 85%,
+    transparent
+  );
+  box-shadow:
+    0 0 22px 6px rgba(255, 159, 46, 0.35),
+    0 0 80px 20px rgba(255, 159, 46, 0.15);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 2;
+  animation: flare 6s ease-in-out infinite alternate;
+}
+
+/* Madilim na gilid */
+.vignette {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 8, 10, 0.85) 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Film grain */
+.grain {
+  position: fixed;
+  inset: -10%;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 4;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  animation: grain 0.8s steps(5) infinite;
+}
+
+.container {
+  position: relative;
+  z-index: 5;
+  width: 90%;
+  max-width: 660px;
+  animation: fadeUp 1.2s 0.9s ease both;
+}
+
+.tagline {
+  text-align: center;
+  font-family: "Oswald", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 12px;
+}
+
+h1 {
+  text-align: center;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 6vw, 3.3rem);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  text-shadow: 0 0 30px rgba(127, 214, 208, 0.35);
+  margin-bottom: 40px;
+}
+
+.quote-card {
+  position: relative;
+  padding: 54px 44px 44px 52px;
+  text-align: left;
+  border: 1px solid rgba(127, 214, 208, 0.18);
+  border-left: 4px solid var(--amber);
+  border-radius: 6px;
+  background-color: rgba(6, 34, 42, 0.72);
+  background-image: linear-gradient(
+    120deg,
+    rgba(255, 159, 46, 0.08),
+    transparent 45%,
+    rgba(127, 214, 208, 0.08)
+  );
+  color: var(--text);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(27, 107, 115, 0.25);
+  transition: background-color 0.8s ease, color 0.8s ease, border-color 0.8s ease;
+}
+
+/* Parang video scrubber sa ilalim ng card */
+.quote-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--amber), var(--teal), transparent);
+  opacity: 0.7;
+}
+
+/* Malaking quote mark sa likod */
+.mark {
+  position: absolute;
+  top: -4px;
+  left: 20px;
+  font-family: "Playfair Display", serif;
+  font-size: 7rem;
+  line-height: 1;
+  color: var(--amber);
+  opacity: 0.25;
+  pointer-events: none;
+  user-select: none;
+}
+
+.quote-text {
+  position: relative;
+  font-size: clamp(1.25rem, 3vw, 1.7rem);
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.75;
+  margin-bottom: 28px;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+}
+
+.quote-author {
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 159, 46, 0.25);
+  font-family: "Oswald", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--amber-soft);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 38px;
+}
+
+button {
+  padding: 14px 34px;
+  border: 1px solid var(--amber);
+  border-radius: 3px;
+  background: linear-gradient(135deg, var(--amber-soft), var(--amber));
+  color: #1a0f02;
+  font-family: "Oswald", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 26px rgba(255, 159, 46, 0.55);
+}
+
+button.secondary {
+  background: transparent;
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+button.secondary:hover {
+  background: rgba(127, 214, 208, 0.12);
+  box-shadow: 0 0 22px rgba(127, 214, 208, 0.35);
+}
+
+/* Timecode style na counter */
+.counter {
+  margin-top: 30px;
+  text-align: center;
+  font-family: "Oswald", sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.counter::before {
+  content: "\25B6";
+  display: inline-block;
+  margin-right: 10px;
+  font-size: 0.65rem;
+  color: var(--amber);
+}
+
+/* Fade-in effect para sa bagong verse */
+.reveal {
+  animation: reveal 0.9s ease both;
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(10px); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes barsOpen {
+  from { height: 50vh; }
+  to   { height: var(--bar); }
+}
+
+@keyframes flare {
+  from { opacity: 0.35; transform: scaleX(0.7); }
+  to   { opacity: 0.9; transform: scaleX(1); }
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(-2%, -3%); }
+  60% { transform: translate(3%, 3%); }
+  80% { transform: translate(2%, -2%); }
+}
+
+@media (max-width: 480px) {
+  .quote-card {
+    padding: 48px 24px 32px 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+    </style>
+
+     <main class="container">
+    <h1>Random Bible Verse</h1>
+
+    <div class="quote-card" id="quoteCard">
+      <p class="quote-text" id="quoteText">Press the button to get a verse.</p>
+      <p class="quote-author" id="quoteAuthor">— Verser</p>
+    </div>
+
+    <div class="actions">
+      <button id="newQuoteBtn">New Verse</button>
+      <button id="copyBtn" class="secondary">Copy</button>
+    </div>
+
+    <p class="counter">Bible Verse generated: <span id="counter">0</span></p>
+  </main>
+
+  <script>const quotes = [
+  { text: "Trust in the LORD with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths.", author: "Proverbs 3:5-6" },
+  { text: "For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end.", author: "Jeremiah 29:11" },
+  { text: "I can do all things through Christ which strengtheneth me.", author: "Philippians 4:13" },
+  { text: "And the peace of God, which passeth all understanding, shall keep your hearts and minds through Christ Jesus.", author: "Philippians 4:7" },
+  { text: "Fear thou not; for I am with thee: be not dismayed; for I am thy God: I will strengthen thee; yea, I will help thee; yea, I will uphold thee with the right hand of my righteousness.", author: "Isaiah 41:10" },
+  { text: "Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest.", author: "Joshua 1:9" },
+  { text: "The LORD is my shepherd; I shall not want.", author: "Psalm 23:1" },
+  { text: "God is our refuge and strength, a very present help in trouble.", author: "Psalm 46:1" },
+  { text: "Be still, and know that I am God.", author: "Psalm 46:10" },
+  { text: "Delight thyself also in the LORD; and he shall give thee the desires of thine heart. Commit thy way unto the LORD; trust also in him; and he shall bring it to pass.", author: "Psalm 37:4-5" },
+  { text: "I will lift up mine eyes unto the hills, from whence cometh my help. My help cometh from the LORD, which made heaven and earth.", author: "Psalm 121:1-2" },
+  { text: "The LORD is my light and my salvation; whom shall I fear? the LORD is the strength of my life; of whom shall I be afraid?", author: "Psalm 27:1" },
+  { text: "Thy word is a lamp unto my feet, and a light unto my path.", author: "Psalm 119:105" },
+  { text: "This is the day which the LORD hath made; we will rejoice and be glad in it.", author: "Psalm 118:24" },
+  { text: "So teach us to number our days, that we may apply our hearts unto wisdom.", author: "Psalm 90:12" },
+  { text: "O taste and see that the LORD is good: blessed is the man that trusteth in him.", author: "Psalm 34:8" },
+  { text: "Weeping may endure for a night, but joy cometh in the morning.", author: "Psalm 30:5" },
+  { text: "Cast thy burden upon the LORD, and he shall sustain thee: he shall never suffer the righteous to be moved.", author: "Psalm 55:22" },
+  { text: "Thou wilt shew me the path of life: in thy presence is fulness of joy; at thy right hand there are pleasures for evermore.", author: "Psalm 16:11" },
+  { text: "But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint.", author: "Isaiah 40:31" },
+  { text: "Behold, I will do a new thing; now it shall spring forth; shall ye not know it? I will even make a way in the wilderness, and rivers in the desert.", author: "Isaiah 43:19" },
+  { text: "Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.", author: "Isaiah 26:3" },
+  { text: "It is of the LORD's mercies that we are not consumed, because his compassions fail not. They are new every morning: great is thy faithfulness.", author: "Lamentations 3:22-23" },
+  { text: "And we know that all things work together for good to them that love God, to them who are the called according to his purpose.", author: "Romans 8:28" },
+  { text: "Rejoicing in hope; patient in tribulation; continuing instant in prayer.", author: "Romans 12:12" },
+  { text: "Now the God of hope fill you with all joy and peace in believing, that ye may abound in hope, through the power of the Holy Ghost.", author: "Romans 15:13" },
+  { text: "If God be for us, who can be against us?", author: "Romans 8:31" },
+  { text: "And let us not be weary in well doing: for in due season we shall reap, if we faint not.", author: "Galatians 6:9" },
+  { text: "Therefore, my beloved brethren, be ye stedfast, unmoveable, always abounding in the work of the Lord, forasmuch as ye know that your labour is not in vain in the Lord.", author: "1 Corinthians 15:58" },
+  { text: "And whatsoever ye do, do it heartily, as to the Lord, and not unto men.", author: "Colossians 3:23" },
+  { text: "For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind.", author: "2 Timothy 1:7" },
+  { text: "Now faith is the substance of things hoped for, the evidence of things not seen.", author: "Hebrews 11:1" },
+  { text: "Let us run with patience the race that is set before us.", author: "Hebrews 12:1" },
+  { text: "If any of you lack wisdom, let him ask of God, that giveth to all men liberally, and upbraideth not; and it shall be given him.", author: "James 1:5" },
+  { text: "But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you.", author: "Matthew 6:33" },
+  { text: "Take therefore no thought for the morrow: for the morrow shall take thought for the things of itself. Sufficient unto the day is the evil thereof.", author: "Matthew 6:34" },
+  { text: "Come unto me, all ye that labour and are heavy laden, and I will give you rest.", author: "Matthew 11:28" },
+  { text: "Let your light so shine before men, that they may see your good works, and glorify your Father which is in heaven.", author: "Matthew 5:16" },
+  { text: "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.", author: "John 14:27" },
+  { text: "In the world ye shall have tribulation: but be of good cheer; I have overcome the world.", author: "John 16:33" },
+  { text: "Now unto him that is able to do exceeding abundantly above all that we ask or think, according to the power that worketh in us.", author: "Ephesians 3:20" },
+  { text: "Casting all your care upon him; for he careth for you.", author: "1 Peter 5:7" },
+  { text: "Rejoice evermore. Pray without ceasing. In every thing give thanks: for this is the will of God in Christ Jesus concerning you.", author: "1 Thessalonians 5:16-18" },
+  { text: "Enter into his gates with thanksgiving, and into his courts with praise: be thankful unto him, and bless his name.", author: "Psalm 100:4" },
+  { text: "Commit thy works unto the LORD, and thy thoughts shall be established.", author: "Proverbs 16:3" },
+  { text: "Seest thou a man diligent in his business? he shall stand before kings; he shall not stand before mean men.", author: "Proverbs 22:29" },
+  { text: "To every thing there is a season, and a time to every purpose under the heaven.", author: "Ecclesiastes 3:1" },
+  { text: "Be strong and of a good courage, fear not, nor be afraid of them: for the LORD thy God, he it is that doth go with thee; he will not fail thee, nor forsake thee.", author: "Deuteronomy 31:6" },
+  { text: "The LORD bless thee, and keep thee: The LORD make his face shine upon thee, and be gracious unto thee: The LORD lift up his countenance upon thee, and give thee peace.", author: "Numbers 6:24-26" },
+  { text: "Forgetting those things which are behind, and reaching forth unto those things which are before, I press toward the mark for the prize of the high calling of God in Christ Jesus.", author: "Philippians 3:13-14" }
+];
+
+const themes = [
+  { background: "#0f172a", color: "#e2e8f0" }, // Midnight Prayer - tahimik na gabi
+  { background: "#fde7c3", color: "#7c2d12" }, // Sunrise - bagong umaga, bagong awa
+  { background: "#0c4a6e", color: "#e0f2fe" }, // Still Waters - kapayapaan
+  { background: "#14532d", color: "#ecfdf5" }, // Green Pastures - Psalm 23
+  { background: "#f8fafc", color: "#1e3a8a" }, // Dove - linis at kapayapaan
+  { background: "#3b0764", color: "#f3e8ff" }, // Royal - kamahalan ng Diyos
+  { background: "#451a03", color: "#fcd34d" }, // Golden Glory - liwanag at kaluwalhatian
+  { background: "#ede9fe", color: "#4c1d95" }, // Lavender Grace - biyaya
+  { background: "#4c0519", color: "#ffe4e6" }, // Covenant - pag-ibig at sakripisyo
+  { background: "#ecfccb", color: "#365314" }  // Olive Branch - pag-asa at bagong simula
+];
+
+
+
+let dagdag = 1;
+
+function getrandomitem(array) {
+
+const randomindex = Math.floor(Math.random() * array.length);
+return array[randomindex];
+}
+
+const quotetext = document.getElementById('quoteText');
+const quoteauthor = document.getElementById('quoteAuthor');
+const card = document.getElementById('quoteCard');
+const counter = document.getElementById('counter');
+function showquotes() {
+
+ const tawagin1 =  getrandomitem(quotes);
+ const tawagin2 = getrandomitem(themes);
+
+ quotetext.textContent = tawagin1.text;
+ quoteauthor.textContent = tawagin1.author;
+ card.style.background = tawagin2.background;
+ card.style.color = tawagin2.color;
+
+counter.textContent = dagdag++;
+}
+
+const bago = document.getElementById('newQuoteBtn');
+bago.addEventListener('click', () => {
+
+ showquotes();
+})
+
+const copy = document.getElementById('copyBtn'); 
+copy.addEventListener('click', () => {
+
+  navigator.clipboard.writeText(`${quotetext.textContent} ${quoteauthor.textContent}`).then(() => {
+
+    copy.textContent = "Copied!";
+    setTimeout(() => {
+
+       copy.textContent = "Copy";
+    },1500);
+  });
+})</script>
+   
+  </body>
+</html>
